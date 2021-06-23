@@ -2,23 +2,27 @@ const jwt = require('jsonwebtoken');
 const authCtrl = {};
 
 authCtrl.verifyToken = async (req, res, next) => {
-    var bearerHeader = req.headers['authorization'];
     //las llamadas a la API debieran tener un header authorization
-    if (typeof bearerHeader == 'undefined') {
-        res.json({ 'status': '0', 'msg': 'Unauthorized request, headers undefined' })
+    if (!req.headers.authorization) {
+        res.json({ 'status': '0', 'msg': 'Unauthorized request. not foun Authorization' })
     }
     //se espera formato -> Bearer XXX, interesa el token en pos(1) del arrayTexto
-    else {
-        var token = bearerHeader.split(" ")[1];
+    var arrayTexto = req.headers.authorization.split(' ');
+    var token = null;
+    (arrayTexto.length >= 2) ? token = arrayTexto[1] : token = null;
+    if (token == null) {
+        res.json({ 'status': '0', 'msg': 'Unauthorized request. 1' });
+    } else {
         try {
             const payload = jwt.verify(token, "secretkey");
             //payload retorna la información del user que se uso en el método de login
-            req._id = payload.id;
+            req.id = payload.id;
             next(); //se pasa a procesar el siguiente método del stack de la peticion
         } catch (error) {
-            res.json({ 'status': '0', 'msg': 'Unauthorized request.' });
+            res.json({ 'status': '0', 'msg': 'Unauthorized request. 2' });
         }
     }
+
 }
 
 //exportamos el manejador de token
